@@ -13,7 +13,7 @@ public class SalePointMapper {
 
     public SalePointEntity toEntity(SalePointDtoInput salePointDtoInput) {
         SalePointEntity salePointEntity = new SalePointEntity();
-        salePointEntity.setName(salePointEntity.getName());
+        salePointEntity.setName(salePointDtoInput.getName());
         return  salePointEntity;
     }
 
