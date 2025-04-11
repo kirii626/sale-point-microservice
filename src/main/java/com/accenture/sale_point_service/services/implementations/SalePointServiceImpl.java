@@ -7,11 +7,13 @@ import com.accenture.sale_point_service.repositories.SalePointRepository;
 import com.accenture.sale_point_service.services.SalePointService;
 import com.accenture.sale_point_service.services.mappers.SalePointMapper;
 import com.accenture.sale_point_service.utils.ApiResponse;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.Optional;
 
+@Service
 public class SalePointServiceImpl implements SalePointService {
 
     private final SalePointRepository salePointRepository;
