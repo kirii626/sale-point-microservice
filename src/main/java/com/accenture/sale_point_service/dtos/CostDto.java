@@ -1,16 +1,18 @@
 package com.accenture.sale_point_service.dtos;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 
 public class CostDto {
 
-    @Valid
+    @NotNull
     private Long fromId;
 
-    @Valid
+    @NotNull
     private Long toId;
 
-    @Valid
+    @Min(0)
     private Long cost;
 
     public CostDto() {
