@@ -14,9 +14,6 @@ public class CostEntity {
     @Column(nullable = false)
     private Long cost;
 
-    @ManyToOne
-    private SalePointEntity salePointEntity;
-
     public CostEntity() {
     }
 
@@ -35,14 +32,6 @@ public class CostEntity {
 
     public void setCost(Long cost) {
         this.cost = cost;
-    }
-
-    public SalePointEntity getSalePointEntity() {
-        return salePointEntity;
-    }
-
-    public void setSalePointEntity(SalePointEntity salePointEntity) {
-        this.salePointEntity = salePointEntity;
     }
 
     @Override

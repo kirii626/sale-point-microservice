@@ -10,14 +10,11 @@ import jakarta.persistence.*;
 public class SalePointEntity {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long salePointId;
 
     @Column(nullable = false)
     private String name;
-
-    @OneToMany(mappedBy = "salePointEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<CostEntity> costEntities = new HashSet<>();
 
     public SalePointEntity() {
     }
@@ -25,11 +22,6 @@ public class SalePointEntity {
     public SalePointEntity(Long salePointId, String name) {
         this.salePointId = salePointId;
         this.name = name;
-    }
-
-    public void addCostEntity(CostEntity costEntity) {
-        costEntity.setSalePointEntity(this);
-        this.costEntities.add(costEntity);
     }
 
     public Long getSalePointId() {
@@ -42,14 +34,6 @@ public class SalePointEntity {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Set<CostEntity> getCostEntities() {
-        return costEntities;
-    }
-
-    public void setCostEntities(Set<CostEntity> costEntities) {
-        this.costEntities = costEntities;
     }
 
     @Override
