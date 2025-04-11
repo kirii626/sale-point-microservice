@@ -11,7 +11,7 @@ public interface CostService {
 
     public ApiResponse<CostDto> createCost(CostDto costDto);
 
-    public ApiResponse<String> deleteCost(Long costId);
+    public ApiResponse<String> deleteCost(Long fromId, Long toId);
 
     public ApiResponse<List<CostDto>> getDirectConnectionsFrom(Long fromId);
 
