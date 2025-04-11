@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 @Component
 public class CostMapper {
 
-    public CostEntity toEntity(CostDto costDto) {
+    public static CostEntity toEntity(CostDto costDto) {
         return new CostEntity(
                 costDto.getFromId(),
                 costDto.getToId(),
@@ -18,7 +18,7 @@ public class CostMapper {
         );
     }
 
-    public CostDto toDto(CostEntity costEntity) {
+    public static CostDto toDto(CostEntity costEntity) {
         return new CostDto(
                 costEntity.getCostId().getFromId(),
                 costEntity.getCostId().getToId(),
@@ -26,10 +26,10 @@ public class CostMapper {
         );
     }
 
-    public List<CostDto> toDtoList(List<CostEntity> costEntityList) {
+    public static List<CostDto> toDtoList(List<CostEntity> costEntityList) {
         return costEntityList
                 .stream()
-                .map(this::toDto)
+                .map(CostMapper::toDto)
                 .collect(Collectors.toList());
     }
 }
