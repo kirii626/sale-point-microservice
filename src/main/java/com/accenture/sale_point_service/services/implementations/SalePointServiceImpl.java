@@ -7,6 +7,8 @@ import com.accenture.sale_point_service.repositories.SalePointRepository;
 import com.accenture.sale_point_service.services.SalePointService;
 import com.accenture.sale_point_service.services.mappers.SalePointMapper;
 import com.accenture.sale_point_service.utils.ApiResponse;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -24,6 +26,7 @@ public class SalePointServiceImpl implements SalePointService {
         this.salePointMapper = salePointMapper;
     }
 
+    @Cacheable("salePoints")
     @Override
     public ApiResponse<List<SalePointDtoOutput>> allSalePoints() {
         List<SalePointEntity> salePointEntityList = salePointRepository.findAll();
@@ -37,6 +40,7 @@ public class SalePointServiceImpl implements SalePointService {
         return response;
     }
 
+    @Cacheable(value = "salePointById", key = "#salePointId")
     @Override
     public ApiResponse<SalePointDtoOutput> findSalePointById(Long salePointId) {
         SalePointEntity salePointEntity = salePointRepository.findById(salePointId)
@@ -52,6 +56,7 @@ public class SalePointServiceImpl implements SalePointService {
         return response;
     }
 
+    @CacheEvict(value = {"salePoints", "salePointById"}, allEntries = true)
     @Override
     public ApiResponse<SalePointDtoOutput> addSalePoint(SalePointDtoInput salePointDtoInput) {
         SalePointEntity salePointEntity = salePointMapper.toEntity(salePointDtoInput);
@@ -66,6 +71,7 @@ public class SalePointServiceImpl implements SalePointService {
         return response;
     }
 
+    @CacheEvict(value = {"salePoints", "salePointById"}, allEntries = true)
     @Override
     public ApiResponse<SalePointDtoOutput> updateSalePoint(Long salePointId, SalePointDtoInput salePointDtoInput) {
         SalePointEntity salePointEntity = salePointRepository.findById(salePointId)
@@ -82,6 +88,7 @@ public class SalePointServiceImpl implements SalePointService {
         return response;
     }
 
+    @CacheEvict(value = {"salePoints", "salePointById"}, allEntries = true)
     @Override
     public ApiResponse<String> deleteSalePoint(Long salePointId) {
         SalePointEntity salePointEntity = salePointRepository.findById(salePointId)
