@@ -8,6 +8,8 @@ import com.accenture.sale_point_service.services.CostService;
 import com.accenture.sale_point_service.services.mappers.CostMapper;
 import com.accenture.sale_point_service.services.validations.ValidCostFields;
 import com.accenture.sale_point_service.utils.ApiResponse;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,6 +29,7 @@ public class CostServiceImpl implements CostService {
         this.validCostFields = validCostFields;
     }
 
+    @Cacheable("costs")
     @Override
     public ApiResponse<List<CostDto>> getAllCosts() {
         List<CostEntity> costEntityList = costRepository.findAll();
@@ -41,6 +44,7 @@ public class CostServiceImpl implements CostService {
         return response;
     }
 
+    @CacheEvict(value = {"costs", "directConnectionsFrom"}, allEntries = true)
     @Override
     public ApiResponse<CostDto> createCost(CostDto costDto) {
         validCostFields.validateBusinessRules(costDto);
@@ -64,6 +68,7 @@ public class CostServiceImpl implements CostService {
         return response;
     }
 
+    @CacheEvict(value = {"costs", "directConnectionsFrom"}, allEntries = true)
     @Override
     public ApiResponse<String> deleteCost(Long fromId, Long toId) {
         CostId costId = new CostId(fromId, toId);
@@ -81,6 +86,7 @@ public class CostServiceImpl implements CostService {
         return response;
     }
 
+    @Cacheable(value = "directConnectionsFrom")
     @Override
     public ApiResponse<List<CostDto>> getDirectConnectionsFrom(Long fromId) {
         List<CostDto> costDtoList = costRepository.findAll().stream()
