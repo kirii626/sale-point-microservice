@@ -19,8 +19,7 @@ public class SalePointEntity {
     public SalePointEntity() {
     }
 
-    public SalePointEntity(Long salePointId, String name) {
-        this.salePointId = salePointId;
+    public SalePointEntity(String name) {
         this.name = name;
     }
 
