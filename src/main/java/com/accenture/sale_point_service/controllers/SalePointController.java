@@ -7,7 +7,6 @@ import com.accenture.sale_point_service.utils.ApiResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/sale-point")
@@ -25,7 +24,7 @@ public class SalePointController {
     }
 
     @GetMapping("/by-id/{salePointId}")
-    public ApiResponse<SalePointDtoOutput> getSalePointById(@PathVariable Long salePointId) {
+    public SalePointDtoOutput getSalePointById(@PathVariable Long salePointId) {
         return salePointService.findSalePointById(salePointId);
     }
 
@@ -43,4 +42,5 @@ public class SalePointController {
     public ApiResponse<String> deleteSalePoint(@PathVariable Long salePointId) {
         return salePointService.deleteSalePoint(salePointId);
     }
+
 }

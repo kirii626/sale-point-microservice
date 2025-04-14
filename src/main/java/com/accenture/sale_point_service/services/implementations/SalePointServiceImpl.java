@@ -42,18 +42,13 @@ public class SalePointServiceImpl implements SalePointService {
 
     @Cacheable(value = "salePointById", key = "#salePointId")
     @Override
-    public ApiResponse<SalePointDtoOutput> findSalePointById(Long salePointId) {
+    public SalePointDtoOutput findSalePointById(Long salePointId) {
         SalePointEntity salePointEntity = salePointRepository.findById(salePointId)
                 .orElseThrow(() -> new RuntimeException("Sale Point Not Found By Id"));
 
         SalePointDtoOutput salePointDtoOutput = salePointMapper.toDto(salePointEntity);
 
-        ApiResponse response = new ApiResponse<>(
-                "Sale Point Was Found",
-                salePointDtoOutput
-        );
-
-        return response;
+        return salePointDtoOutput;
     }
 
     @CacheEvict(value = {"salePoints", "salePointById"}, allEntries = true)

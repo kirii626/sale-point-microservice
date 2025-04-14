@@ -16,5 +16,5 @@ public interface SalePointService {
 
     public ApiResponse<String> deleteSalePoint(Long salePointId);
 
-    ApiResponse<SalePointDtoOutput> findSalePointById(Long salePointId);
+    SalePointDtoOutput findSalePointById(Long salePointId);
 }
