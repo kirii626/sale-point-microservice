@@ -5,9 +5,11 @@ import com.accenture.sale_point_service.models.CostEntity;
 import com.accenture.sale_point_service.models.CostId;
 import com.accenture.sale_point_service.repositories.CostRepository;
 import com.accenture.sale_point_service.services.CostService;
+import com.accenture.sale_point_service.graph.GraphService;
 import com.accenture.sale_point_service.services.mappers.CostMapper;
 import com.accenture.sale_point_service.services.validations.ValidCostFields;
 import com.accenture.sale_point_service.utils.ApiResponse;
+import jakarta.annotation.PostConstruct;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -22,11 +24,19 @@ public class CostServiceImpl implements CostService {
     private final CostRepository costRepository;
     private final CostMapper costMapper;
     private final ValidCostFields validCostFields;
+    private final GraphService graphService;
 
-    public CostServiceImpl(CostRepository costRepository, CostMapper costMapper, ValidCostFields validCostFields) {
+    public CostServiceImpl(CostRepository costRepository, CostMapper costMapper, ValidCostFields validCostFields, GraphService graphService) {
         this.costRepository = costRepository;
         this.costMapper = costMapper;
         this.validCostFields = validCostFields;
+        this.graphService = graphService;
+    }
+
+    @PostConstruct
+    public void initGraph() {
+        List<CostEntity> costs = costRepository.findAll();
+        graphService.loadGraph(costs);
     }
 
     @Cacheable("costs")
@@ -58,6 +68,8 @@ public class CostServiceImpl implements CostService {
         CostEntity costEntity = costMapper.toEntity(costDto);
         CostEntity savedCost = costRepository.save(costEntity);
 
+        graphService.addEdge(costDto.getFromId(), costDto.getToId(), costDto.getCost());
+
         CostDto costDtoOutput = costMapper.toDto(savedCost);
 
         ApiResponse response = new ApiResponse<>(
@@ -78,6 +90,8 @@ public class CostServiceImpl implements CostService {
         }
 
         costRepository.deleteById(costId);
+
+        graphService.removeEdge(fromId, toId);
 
         ApiResponse response = new ApiResponse(
                 "The path has been deleted successfully"
