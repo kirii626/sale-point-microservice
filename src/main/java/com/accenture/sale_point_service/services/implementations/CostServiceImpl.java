@@ -33,12 +33,6 @@ public class CostServiceImpl implements CostService {
         this.graphService = graphService;
     }
 
-    @PostConstruct
-    public void initGraph() {
-        List<CostEntity> costs = costRepository.findAll();
-        graphService.loadGraph(costs);
-    }
-
     @Cacheable("costs")
     @Override
     public ApiResponse<List<CostDto>> getAllCosts() {
