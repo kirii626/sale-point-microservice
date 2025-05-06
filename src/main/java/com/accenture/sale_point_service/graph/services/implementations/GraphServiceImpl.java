@@ -1,23 +1,28 @@
-package com.accenture.sale_point_service.graph;
+package com.accenture.sale_point_service.graph.services.implementations;
 
+import com.accenture.sale_point_service.graph.PathPoint;
+import com.accenture.sale_point_service.graph.ShortestPathResult;
 import com.accenture.sale_point_service.models.CostEntity;
 import com.accenture.sale_point_service.models.SalePointEntity;
 import com.accenture.sale_point_service.repositories.SalePointRepository;
+import com.accenture.sale_point_service.graph.services.GraphService;
+import com.accenture.sale_point_service.services.validations.ValidRoleType;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service
-public class GraphService {
+public class GraphServiceImpl implements GraphService {
 
     private final Map<Long, Map<Long, Long>> graph = new HashMap<>();
     private final SalePointRepository salePointRepository;
+    private final ValidRoleType validRoleType;
 
-    public GraphService(SalePointRepository salePointRepository) {
-        this.salePointRepository = salePointRepository;
-    }
-
+    @Override
     public void loadGraph(List<CostEntity> costs) {
         graph.clear();
         for (CostEntity cost : costs) {
@@ -28,17 +33,21 @@ public class GraphService {
         }
     }
 
+    @Override
     public void addEdge(Long from, Long to, Long cost) {
         graph.computeIfAbsent(from, k -> new HashMap<>()).put(to, cost);
         graph.computeIfAbsent(to, k -> new HashMap<>()).put(from, cost);
     }
 
+    @Override
     public void removeEdge(Long from, Long to) {
         Optional.ofNullable(graph.get(from)).ifPresent(m -> m.remove(to));
         Optional.ofNullable(graph.get(to)).ifPresent(m -> m.remove(from));
     }
 
-    public ShortestPathResult findShortestPath(Long start, Long end) {
+    @Override
+    public ShortestPathResult findShortestPath(HttpServletRequest httpServletRequest, Long start, Long end) {
+        validRoleType.validateAdminRole(httpServletRequest);
         Map<Long, Long> distances = new HashMap<>();
         Map<Long, Long> previous = new HashMap<>();
         PriorityQueue<Long> queue = new PriorityQueue<>(Comparator.comparingLong(distances::get));
