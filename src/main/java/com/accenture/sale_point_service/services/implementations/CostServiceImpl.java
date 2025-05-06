@@ -1,15 +1,17 @@
 package com.accenture.sale_point_service.services.implementations;
 
 import com.accenture.sale_point_service.dtos.CostDto;
+import com.accenture.sale_point_service.graph.services.implementations.GraphServiceImpl;
 import com.accenture.sale_point_service.models.CostEntity;
 import com.accenture.sale_point_service.models.CostId;
 import com.accenture.sale_point_service.repositories.CostRepository;
 import com.accenture.sale_point_service.services.CostService;
-import com.accenture.sale_point_service.graph.GraphService;
 import com.accenture.sale_point_service.services.mappers.CostMapper;
 import com.accenture.sale_point_service.services.validations.ValidCostFields;
+import com.accenture.sale_point_service.services.validations.ValidRoleType;
 import com.accenture.sale_point_service.utils.ApiResponse;
-import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -18,39 +20,30 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 @Service
 public class CostServiceImpl implements CostService {
 
     private final CostRepository costRepository;
     private final CostMapper costMapper;
     private final ValidCostFields validCostFields;
-    private final GraphService graphService;
-
-    public CostServiceImpl(CostRepository costRepository, CostMapper costMapper, ValidCostFields validCostFields, GraphService graphService) {
-        this.costRepository = costRepository;
-        this.costMapper = costMapper;
-        this.validCostFields = validCostFields;
-        this.graphService = graphService;
-    }
+    private final GraphServiceImpl graphService;
+    private final ValidRoleType validRoleType;
 
     @Cacheable("costs")
     @Override
-    public ApiResponse<List<CostDto>> getAllCosts() {
+    public List<CostDto> getAllCosts(HttpServletRequest httpServletRequest) {
+        validRoleType.validateAdminRole(httpServletRequest);
         List<CostEntity> costEntityList = costRepository.findAll();
 
         List<CostDto> costDtoList = costMapper.toDtoList(costEntityList);
-
-        ApiResponse<List<CostDto>> response = new ApiResponse<>(
-                "List of all paths and its costs",
-                costDtoList
-        );
-
-        return response;
+        return costDtoList;
     }
 
     @CacheEvict(value = {"costs", "directConnectionsFrom"}, allEntries = true)
     @Override
-    public ApiResponse<CostDto> createCost(CostDto costDto) {
+    public CostDto createCost(HttpServletRequest httpServletRequest, CostDto costDto) {
+        validRoleType.validateAdminRole(httpServletRequest);
         validCostFields.validateBusinessRules(costDto);
 
         CostId costId = new CostId(costDto.getFromId(), costDto.getToId());
@@ -66,17 +59,13 @@ public class CostServiceImpl implements CostService {
 
         CostDto costDtoOutput = costMapper.toDto(savedCost);
 
-        ApiResponse response = new ApiResponse<>(
-                "Cost added successfully",
-                costDtoOutput
-        );
-
-        return response;
+        return costDtoOutput;
     }
 
     @CacheEvict(value = {"costs", "directConnectionsFrom"}, allEntries = true)
     @Override
-    public ApiResponse<String> deleteCost(Long fromId, Long toId) {
+    public void deleteCost(HttpServletRequest httpServletRequest, Long fromId, Long toId) {
+        validRoleType.validateAdminRole(httpServletRequest);
         CostId costId = new CostId(fromId, toId);
 
         if (!costRepository.existsById(costId)){
@@ -86,28 +75,18 @@ public class CostServiceImpl implements CostService {
         costRepository.deleteById(costId);
 
         graphService.removeEdge(fromId, toId);
-
-        ApiResponse response = new ApiResponse(
-                "The path has been deleted successfully"
-        );
-
-        return response;
     }
 
     @Cacheable(value = "directConnectionsFrom")
     @Override
-    public ApiResponse<List<CostDto>> getDirectConnectionsFrom(Long fromId) {
+    public List<CostDto> getDirectConnectionsFrom(HttpServletRequest httpServletRequest, Long fromId) {
+        validRoleType.validateAdminRole(httpServletRequest);
         List<CostDto> costDtoList = costRepository.findAll().stream()
                 .filter(c -> c.getCostId().getFromId().equals(fromId) || c.getCostId().getToId().equals(fromId))
-                .map(CostMapper::toDto)
+                .map(costMapper::toDto)
                 .collect(Collectors.toList());
 
-        ApiResponse response = new ApiResponse<>(
-                "These are all the registered paths",
-                costDtoList
-        );
-
-        return response;
+        return costDtoList;
     }
 
 

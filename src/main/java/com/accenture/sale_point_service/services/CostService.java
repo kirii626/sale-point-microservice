@@ -2,17 +2,18 @@ package com.accenture.sale_point_service.services;
 
 import com.accenture.sale_point_service.dtos.CostDto;
 import com.accenture.sale_point_service.utils.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
 public interface CostService {
 
-    public ApiResponse<List<CostDto>> getAllCosts();
+    public List<CostDto> getAllCosts(HttpServletRequest httpServletRequest);
 
-    public ApiResponse<CostDto> createCost(CostDto costDto);
+    public CostDto createCost(HttpServletRequest httpServletRequest, CostDto costDto);
 
-    public ApiResponse<String> deleteCost(Long fromId, Long toId);
+    public void deleteCost(HttpServletRequest httpServletRequest, Long fromId, Long toId);
 
-    public ApiResponse<List<CostDto>> getDirectConnectionsFrom(Long fromId);
+    public List<CostDto> getDirectConnectionsFrom(HttpServletRequest httpServletRequest, Long fromId);
 
 }
