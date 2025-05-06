@@ -9,6 +9,8 @@ import com.accenture.sale_point_service.graph.services.GraphService;
 import com.accenture.sale_point_service.services.validations.ValidRoleType;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -22,6 +24,7 @@ public class GraphServiceImpl implements GraphService {
     private final SalePointRepository salePointRepository;
     private final ValidRoleType validRoleType;
 
+    @CacheEvict(value = "shortestPaths", allEntries = true)
     @Override
     public void loadGraph(List<CostEntity> costs) {
         graph.clear();
@@ -33,18 +36,21 @@ public class GraphServiceImpl implements GraphService {
         }
     }
 
+    @CacheEvict(value = "shortestPaths", allEntries = true)
     @Override
     public void addEdge(Long from, Long to, Long cost) {
         graph.computeIfAbsent(from, k -> new HashMap<>()).put(to, cost);
         graph.computeIfAbsent(to, k -> new HashMap<>()).put(from, cost);
     }
 
+    @CacheEvict(value = "shortestPaths", allEntries = true)
     @Override
     public void removeEdge(Long from, Long to) {
         Optional.ofNullable(graph.get(from)).ifPresent(m -> m.remove(to));
         Optional.ofNullable(graph.get(to)).ifPresent(m -> m.remove(from));
     }
 
+    @Cacheable(value = "shortestPaths", key = "#start + ':' + #end")
     @Override
     public ShortestPathResult findShortestPath(HttpServletRequest httpServletRequest, Long start, Long end) {
         validRoleType.validateAdminRole(httpServletRequest);
