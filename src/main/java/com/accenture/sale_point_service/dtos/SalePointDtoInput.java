@@ -1,20 +1,16 @@
 package com.accenture.sale_point_service.dtos;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class SalePointDtoInput {
 
-    @Valid
+    @NotNull
     private String name;
-
-    public SalePointDtoInput() {
-    }
-
-    public SalePointDtoInput(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
 }

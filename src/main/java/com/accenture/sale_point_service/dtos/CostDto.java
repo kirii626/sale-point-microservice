@@ -3,7 +3,13 @@ package com.accenture.sale_point_service.dtos;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CostDto {
 
     @NotNull
@@ -15,24 +21,4 @@ public class CostDto {
     @Min(0)
     private Long cost;
 
-    public CostDto() {
-    }
-
-    public CostDto(Long fromId, Long toId, Long cost) {
-        this.fromId = fromId;
-        this.toId = toId;
-        this.cost = cost;
-    }
-
-    public Long getFromId() {
-        return fromId;
-    }
-
-    public Long getToId() {
-        return toId;
-    }
-
-    public Long getCost() {
-        return cost;
-    }
 }
