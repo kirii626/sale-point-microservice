@@ -4,33 +4,24 @@ import java.util.UUID;
 
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@NoArgsConstructor
 @Entity
 public class CostEntity {
     
     @EmbeddedId
     private CostId costId;
 
+    @Setter
     @Column(nullable = false)
     private Long cost;
 
-    public CostEntity() {
-    }
-
     public CostEntity(Long fromId, Long toId, Long cost) {
         this.costId = new CostId(fromId, toId);
-        this.cost = cost;
-    }
-
-    public CostId getCostId() {
-        return costId;
-    }
-
-    public Long getCost() {
-        return cost;
-    }
-
-    public void setCost(Long cost) {
         this.cost = cost;
     }
 

@@ -1,17 +1,22 @@
 package com.accenture.sale_point_service.models;
 
 import jakarta.persistence.Embeddable;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Objects;
 
+@Getter
+@NoArgsConstructor
 @Embeddable
 public class CostId {
 
+    @Setter
     private Long fromId;
-    private Long toId;
 
-    public CostId() {
-    }
+    @Setter
+    private Long toId;
 
     public CostId(Long fromId, Long toId) {
         if (fromId < toId) {
@@ -21,22 +26,6 @@ public class CostId {
             this.fromId = toId;
             this.toId = fromId;
         }
-    }
-
-    public Long getFromId() {
-        return fromId;
-    }
-
-    public void setFromId(Long fromId) {
-        this.fromId = fromId;
-    }
-
-    public Long getToId() {
-        return toId;
-    }
-
-    public void setToId(Long toId) {
-        this.toId = toId;
     }
 
     @Override

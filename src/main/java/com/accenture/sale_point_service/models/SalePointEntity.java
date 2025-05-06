@@ -5,33 +5,24 @@ import java.util.Set;
 import java.util.UUID;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+@Getter
+@NoArgsConstructor
 @Entity
 public class SalePointEntity {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long salePointId;
 
+    @Setter
     @Column(nullable = false)
     private String name;
 
-    public SalePointEntity() {
-    }
-
     public SalePointEntity(String name) {
-        this.name = name;
-    }
-
-    public Long getSalePointId() {
-        return salePointId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
         this.name = name;
     }
 
