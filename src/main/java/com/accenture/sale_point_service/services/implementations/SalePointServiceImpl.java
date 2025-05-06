@@ -6,7 +6,10 @@ import com.accenture.sale_point_service.models.SalePointEntity;
 import com.accenture.sale_point_service.repositories.SalePointRepository;
 import com.accenture.sale_point_service.services.SalePointService;
 import com.accenture.sale_point_service.services.mappers.SalePointMapper;
+import com.accenture.sale_point_service.services.validations.ValidRoleType;
 import com.accenture.sale_point_service.utils.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -15,29 +18,22 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 public class SalePointServiceImpl implements SalePointService {
 
     private final SalePointRepository salePointRepository;
     private final SalePointMapper salePointMapper;
+    private final ValidRoleType validRoleType;
 
-    public SalePointServiceImpl(SalePointRepository salePointRepository, SalePointMapper salePointMapper) {
-        this.salePointRepository = salePointRepository;
-        this.salePointMapper = salePointMapper;
-    }
-
-    @Cacheable("salePoints")
+    @Cacheable(value = "salePoints", key = "'all'")
     @Override
-    public ApiResponse<List<SalePointDtoOutput>> allSalePoints() {
+    public List<SalePointDtoOutput> allSalePoints(HttpServletRequest httpServletRequest) {
+        validRoleType.validateAdminRole(httpServletRequest);
         List<SalePointEntity> salePointEntityList = salePointRepository.findAll();
         List<SalePointDtoOutput> salePointDtoList = salePointMapper.toDtoList(salePointEntityList);
 
-        ApiResponse<List<SalePointDtoOutput>> response = new ApiResponse<>(
-            "List of all sale points",
-                salePointDtoList
-        );
-
-        return response;
+        return salePointDtoList;
     }
 
     @Cacheable(value = "salePointById", key = "#salePointId")
@@ -53,46 +49,39 @@ public class SalePointServiceImpl implements SalePointService {
 
     @CacheEvict(value = {"salePoints", "salePointById"}, allEntries = true)
     @Override
-    public ApiResponse<SalePointDtoOutput> addSalePoint(SalePointDtoInput salePointDtoInput) {
+    public SalePointDtoOutput addSalePoint(HttpServletRequest httpServletRequest, SalePointDtoInput salePointDtoInput) {
+        validRoleType.validateAdminRole(httpServletRequest);
         SalePointEntity salePointEntity = salePointMapper.toEntity(salePointDtoInput);
         SalePointEntity savedSalePoint = salePointRepository.save(salePointEntity);
         SalePointDtoOutput newSalePoint = salePointMapper.toDto(savedSalePoint);
 
-        ApiResponse response = new ApiResponse<>(
-                "Sale Point Added Successfully",
-                newSalePoint
-        );
-
-        return response;
+        return newSalePoint;
     }
 
     @CacheEvict(value = {"salePoints", "salePointById"}, allEntries = true)
     @Override
-    public ApiResponse<SalePointDtoOutput> updateSalePoint(Long salePointId, SalePointDtoInput salePointDtoInput) {
+    public SalePointDtoOutput updateSalePoint(HttpServletRequest httpServletRequest, Long salePointId, SalePointDtoInput salePointDtoInput) {
+        validRoleType.validateAdminRole(httpServletRequest);
+
         SalePointEntity salePointEntity = salePointRepository.findById(salePointId)
                 .orElseThrow(() -> new RuntimeException("Sale Point Not Found By Id"));
+
+        salePointEntity.setName(salePointDtoInput.getName());
+
         SalePointEntity updatedSalePoint = salePointRepository.save(salePointEntity);
 
         SalePointDtoOutput salePointDtoOutput = salePointMapper.toDto(updatedSalePoint);
 
-        ApiResponse response = new ApiResponse<>(
-                "Sale Point Updated Successfully",
-                salePointDtoInput
-        );
-
-        return response;
+        return salePointDtoOutput;
     }
 
     @CacheEvict(value = {"salePoints", "salePointById"}, allEntries = true)
     @Override
-    public ApiResponse<String> deleteSalePoint(Long salePointId) {
+    public void deleteSalePoint(HttpServletRequest httpServletRequest, Long salePointId) {
+        validRoleType.validateAdminRole(httpServletRequest);
+
         SalePointEntity salePointEntity = salePointRepository.findById(salePointId)
                 .orElseThrow(() -> new RuntimeException("Sale Point Not Found By Id"));
         salePointRepository.delete(salePointEntity);
-
-        ApiResponse response = new ApiResponse<>(
-                "Sale Point Deleted Successfully");
-
-        return response;
     }
 }
