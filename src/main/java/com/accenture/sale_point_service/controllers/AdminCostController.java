@@ -6,6 +6,7 @@ import com.accenture.sale_point_service.services.CostService;
 import com.accenture.sale_point_service.graph.services.implementations.GraphServiceImpl;
 import com.accenture.sale_point_service.utils.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class AdminCostController {
     }
 
     @PostMapping("/create")
-    public ApiResponse<CostDto> createCost(HttpServletRequest httpServletRequest, @RequestBody CostDto costDto) {
+    public ApiResponse<CostDto> createCost(HttpServletRequest httpServletRequest, @Valid @RequestBody CostDto costDto) {
         CostDto costDto1 = costService.createCost(httpServletRequest, costDto);
 
         ApiResponse<CostDto> response = new ApiResponse<>(

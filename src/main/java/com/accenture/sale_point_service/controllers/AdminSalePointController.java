@@ -5,6 +5,7 @@ import com.accenture.sale_point_service.dtos.SalePointDtoOutput;
 import com.accenture.sale_point_service.services.SalePointService;
 import com.accenture.sale_point_service.utils.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +35,7 @@ public class AdminSalePointController {
     }
 
     @PostMapping("/add-sale-point")
-    public ApiResponse<SalePointDtoOutput> addSalePoint(HttpServletRequest httpServletRequest, @RequestBody SalePointDtoInput salePointDtoInput) {
+    public ApiResponse<SalePointDtoOutput> addSalePoint(HttpServletRequest httpServletRequest, @Valid @RequestBody SalePointDtoInput salePointDtoInput) {
         SalePointDtoOutput salePointDtoOutput = salePointService.addSalePoint(httpServletRequest, salePointDtoInput);
         ApiResponse<SalePointDtoOutput> response = new ApiResponse<>(
                 "Sale Point Created Successfully",
@@ -44,7 +45,7 @@ public class AdminSalePointController {
     }
 
     @PutMapping("/edit-sale-point/{salePointId}")
-    public ApiResponse<SalePointDtoOutput> updateSalePoint(HttpServletRequest httpServletRequest,@PathVariable Long salePointId, @RequestBody SalePointDtoInput salePointDtoInput) {
+    public ApiResponse<SalePointDtoOutput> updateSalePoint(HttpServletRequest httpServletRequest,@PathVariable Long salePointId, @Valid @RequestBody SalePointDtoInput salePointDtoInput) {
         SalePointDtoOutput salePointDtoOutput = salePointService.updateSalePoint(httpServletRequest, salePointId, salePointDtoInput);
         ApiResponse<SalePointDtoOutput> response = new ApiResponse<>(
                 "Sale Point Updated Successfully",
