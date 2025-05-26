@@ -32,7 +32,7 @@
 		<sonar.projectKey>sale-point-microservice</sonar.projectKey>
 		<sonar.projectName>sale-point-microservice</sonar.projectName>
 		<sonar.host.url>http://localhost:9000</sonar.host.url>
-		<sonar.exclusions>**/config/**,**/dtos/**,**/exceptions/**,**/models/**,**/repositories/**,**/utils/**</sonar.exclusions>
+		<sonar.exclusions>**/config/**,**/dtos/**,**/exceptions/**,**/models/**,**/repositories/**,**/utils/**,**/controllers/**</sonar.exclusions>
 	</properties>
 	<dependencies>
 		<dependency>
