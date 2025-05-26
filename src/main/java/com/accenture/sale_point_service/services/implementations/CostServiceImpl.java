@@ -1,7 +1,9 @@
 package com.accenture.sale_point_service.services.implementations;
 
 import com.accenture.sale_point_service.dtos.CostDto;
+import com.accenture.sale_point_service.exceptions.ForbiddenAccessException;
 import com.accenture.sale_point_service.exceptions.InternalServerErrorException;
+import com.accenture.sale_point_service.exceptions.InvalidAuthorizationHeaderException;
 import com.accenture.sale_point_service.graph.services.implementations.GraphServiceImpl;
 import com.accenture.sale_point_service.models.CostEntity;
 import com.accenture.sale_point_service.models.CostId;
@@ -46,6 +48,8 @@ public class CostServiceImpl implements CostService {
 
             log.info("Fetched all sale points");
             return costDtoList;
+        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error while fetching all costs", ex);
             throw new InternalServerErrorException("Unexpected error while fetching all costs", ex);
@@ -77,6 +81,8 @@ public class CostServiceImpl implements CostService {
 
             log.info("Cost created successfully");
             return costDtoOutput;
+        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException | IllegalArgumentException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error while creating cost", ex);
             throw new InternalServerErrorException("Unexpected error while creating cost", ex);
@@ -101,6 +107,8 @@ public class CostServiceImpl implements CostService {
             costRepository.deleteById(costId);
 
             graphService.removeEdge(fromId, toId);
+        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error while deleting cost", ex);
             throw new InternalServerErrorException("Unexpected error while deleting cost", ex);
@@ -123,6 +131,8 @@ public class CostServiceImpl implements CostService {
 
             log.info("Fetched directs connections for ID {}", fromId);
             return costDtoList;
+        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error while fetching all directs connections", ex);
             throw new InternalServerErrorException("Unexpected error while fetching all directs connections", ex);

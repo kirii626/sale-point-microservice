@@ -2,7 +2,9 @@ package com.accenture.sale_point_service.services.implementations;
 
 import com.accenture.sale_point_service.dtos.SalePointDtoInput;
 import com.accenture.sale_point_service.dtos.SalePointDtoOutput;
+import com.accenture.sale_point_service.exceptions.ForbiddenAccessException;
 import com.accenture.sale_point_service.exceptions.InternalServerErrorException;
+import com.accenture.sale_point_service.exceptions.InvalidAuthorizationHeaderException;
 import com.accenture.sale_point_service.exceptions.SalePointNotFoundException;
 import com.accenture.sale_point_service.models.SalePointEntity;
 import com.accenture.sale_point_service.repositories.SalePointRepository;
@@ -41,6 +43,8 @@ public class SalePointServiceImpl implements SalePointService {
 
             log.info("Fetched {} sale points", salePointDtoList.size());
             return salePointDtoList;
+        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error while fetching accreditations", ex);
             throw new InternalServerErrorException("Internal error fetching sale points", ex);
@@ -60,6 +64,8 @@ public class SalePointServiceImpl implements SalePointService {
 
             log.info("Sale point with ID {} found", salePointDtoOutput.getSalePointId());
             return salePointDtoOutput;
+        } catch (SalePointNotFoundException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error during searching", ex);
             throw new InternalServerErrorException("Error while searching sale point", ex);
@@ -81,6 +87,8 @@ public class SalePointServiceImpl implements SalePointService {
 
             log.info("Sale point with ID {} created successfully", newSalePoint.getSalePointId());
             return newSalePoint;
+        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+            throw ex;
         } catch (Exception e) {
             log.error("Error creating sale point", e);
             throw new InternalServerErrorException("Error creating sale point", e);
@@ -107,6 +115,8 @@ public class SalePointServiceImpl implements SalePointService {
 
             log.info("Sale point with ID {} updated successfully", salePointDtoOutput.getSalePointId());
             return salePointDtoOutput;
+        } catch (SalePointNotFoundException | InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+            throw ex;
         } catch (Exception ex) {
             log.error("Error updating sale point", ex);
             throw new InternalServerErrorException("Error updating sale point", ex);
@@ -126,6 +136,8 @@ public class SalePointServiceImpl implements SalePointService {
                     .orElseThrow(() -> new SalePointNotFoundException(salePointId));
             salePointRepository.delete(salePointEntity);
             log.info("Sale point with ID {} deleted successfully", salePointId);
+        } catch (SalePointNotFoundException | InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+            throw ex;
         } catch (Exception e) {
             log.error("Error deleting sale point with ID {}", salePointId, e);
             throw new InternalServerErrorException("Error deleting sale point", e);
