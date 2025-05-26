@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Locale;
+
 
 @RequiredArgsConstructor
 @RestController
@@ -27,43 +27,37 @@ public class AdminCostController {
     public ApiResponse<List<CostDto>> getAllCosts(HttpServletRequest httpServletRequest) {
         List<CostDto> costDtoList = costService.getAllCosts(httpServletRequest);
 
-        ApiResponse<List<CostDto>> response = new ApiResponse<>(
+        return new ApiResponse<>(
                 "List of all paths and its costs",
                 costDtoList
         );
-
-        return response;
     }
 
     @PostMapping("/create")
     public ApiResponse<CostDto> createCost(HttpServletRequest httpServletRequest, @Valid @RequestBody CostDto costDto) {
         CostDto costDto1 = costService.createCost(httpServletRequest, costDto);
 
-        ApiResponse<CostDto> response = new ApiResponse<>(
+        return new ApiResponse<>(
                 "Path created successfully",
                 costDto1
         );
-
-        return response;
     }
 
     @DeleteMapping("/{fromId}-{toId}")
     public ApiResponse<String> deleteCost(HttpServletRequest httpServletRequest, @PathVariable Long fromId, @PathVariable Long toId) {
         costService.deleteCost(httpServletRequest, fromId, toId);
-        ApiResponse<String> response = new ApiResponse<>(
+        return new ApiResponse<>(
                 "Path Deleted Successfully"
         );
-        return response;
     }
 
     @GetMapping("/direct-connections/{fromId}")
     public ApiResponse<List<CostDto>> allDirectConnectionsFrom(HttpServletRequest httpServletRequest, @PathVariable Long fromId) {
         List<CostDto> costDtoList = costService.getDirectConnectionsFrom(httpServletRequest, fromId);
-        ApiResponse<List<CostDto>> response = new ApiResponse<>(
+        return new ApiResponse<>(
                 "All direct connections:",
                 costDtoList
         );
-        return response;
     }
 
 

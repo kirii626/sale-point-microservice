@@ -5,7 +5,6 @@ import com.accenture.sale_point_service.models.CostEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class CostMapper {
@@ -30,6 +29,6 @@ public class CostMapper {
         return costEntityList
                 .stream()
                 .map(this::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

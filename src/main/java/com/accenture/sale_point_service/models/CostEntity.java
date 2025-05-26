@@ -1,8 +1,5 @@
 package com.accenture.sale_point_service.models;
 
-import java.util.UUID;
-
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

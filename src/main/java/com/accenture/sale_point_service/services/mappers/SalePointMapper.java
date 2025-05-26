@@ -6,7 +6,6 @@ import com.accenture.sale_point_service.models.SalePointEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class SalePointMapper {
@@ -27,6 +26,6 @@ public class SalePointMapper {
         return salePointEntityList
                 .stream()
                 .map(this::toDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

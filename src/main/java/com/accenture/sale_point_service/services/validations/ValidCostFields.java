@@ -1,10 +1,7 @@
 package com.accenture.sale_point_service.services.validations;
 
 import com.accenture.sale_point_service.dtos.CostDto;
-import com.accenture.sale_point_service.models.CostEntity;
-import com.accenture.sale_point_service.repositories.CostRepository;
 import com.accenture.sale_point_service.repositories.SalePointRepository;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -2,7 +2,6 @@ package com.accenture.sale_point_service.services;
 
 import com.accenture.sale_point_service.dtos.SalePointDtoInput;
 import com.accenture.sale_point_service.dtos.SalePointDtoOutput;
-import com.accenture.sale_point_service.utils.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;

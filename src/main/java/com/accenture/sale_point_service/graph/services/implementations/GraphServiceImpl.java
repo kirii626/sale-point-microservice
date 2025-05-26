@@ -139,7 +139,7 @@ public class GraphServiceImpl implements GraphService {
 
             List<PathPoint> pathPoints = path.stream()
                     .map(id -> new PathPoint(id, names.getOrDefault(id, "??")))
-                    .collect(Collectors.toList());
+                    .toList();
 
             return new ShortestPathResult(distances.get(end), pathPoints);
         } catch (Exception ex) {

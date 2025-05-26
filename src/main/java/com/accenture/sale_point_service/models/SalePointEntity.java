@@ -1,9 +1,5 @@
 package com.accenture.sale_point_service.models;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

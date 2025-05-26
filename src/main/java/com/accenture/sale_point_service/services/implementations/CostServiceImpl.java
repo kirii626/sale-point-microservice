@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -120,7 +119,7 @@ public class CostServiceImpl implements CostService {
             List<CostDto> costDtoList = costRepository.findAll().stream()
                     .filter(c -> c.getCostId().getFromId().equals(fromId) || c.getCostId().getToId().equals(fromId))
                     .map(costMapper::toDto)
-                    .collect(Collectors.toList());
+                    .toList();
 
             log.info("Fetched directs connections for ID {}", fromId);
             return costDtoList;
