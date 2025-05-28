@@ -14,5 +14,5 @@ public interface GraphService {
 
     void removeEdge(Long from, Long to);
 
-    ShortestPathResult findShortestPath(HttpServletRequest httpServletRequest, Long start, Long end);
+    ShortestPathResult findShortestPath(Long start, Long end);
 }

@@ -13,14 +13,14 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/admin-sale-point")
+@RequestMapping("/api/sale-point/admin")
 public class AdminSalePointController {
 
     private final SalePointService salePointService;
 
     @GetMapping("/all")
-    public ApiResponse<List<SalePointDtoOutput>> getAllSalePoints(HttpServletRequest httpServletRequest) {
-        List<SalePointDtoOutput> salePointDtoOutputList = salePointService.allSalePoints(httpServletRequest);
+    public ApiResponse<List<SalePointDtoOutput>> getAllSalePoints() {
+        List<SalePointDtoOutput> salePointDtoOutputList = salePointService.allSalePoints();
 
         return new ApiResponse<>(
                 "All sale points",
@@ -34,8 +34,8 @@ public class AdminSalePointController {
     }
 
     @PostMapping("/add-sale-point")
-    public ApiResponse<SalePointDtoOutput> addSalePoint(HttpServletRequest httpServletRequest, @Valid @RequestBody SalePointDtoInput salePointDtoInput) {
-        SalePointDtoOutput salePointDtoOutput = salePointService.addSalePoint(httpServletRequest, salePointDtoInput);
+    public ApiResponse<SalePointDtoOutput> addSalePoint(@Valid @RequestBody SalePointDtoInput salePointDtoInput) {
+        SalePointDtoOutput salePointDtoOutput = salePointService.addSalePoint(salePointDtoInput);
         return new ApiResponse<>(
                 "Sale Point Created Successfully",
                 salePointDtoOutput
@@ -43,8 +43,8 @@ public class AdminSalePointController {
     }
 
     @PutMapping("/edit-sale-point/{salePointId}")
-    public ApiResponse<SalePointDtoOutput> updateSalePoint(HttpServletRequest httpServletRequest,@PathVariable Long salePointId, @Valid @RequestBody SalePointDtoInput salePointDtoInput) {
-        SalePointDtoOutput salePointDtoOutput = salePointService.updateSalePoint(httpServletRequest, salePointId, salePointDtoInput);
+    public ApiResponse<SalePointDtoOutput> updateSalePoint(@PathVariable Long salePointId, @Valid @RequestBody SalePointDtoInput salePointDtoInput) {
+        SalePointDtoOutput salePointDtoOutput = salePointService.updateSalePoint(salePointId, salePointDtoInput);
         return new ApiResponse<>(
                 "Sale Point Updated Successfully",
                 salePointDtoOutput
@@ -52,8 +52,8 @@ public class AdminSalePointController {
     }
 
     @DeleteMapping("/delete-sale-point/{salePointId}")
-    public ApiResponse<String> deleteSalePoint(HttpServletRequest httpServletRequest, @PathVariable Long salePointId) {
-        salePointService.deleteSalePoint(httpServletRequest, salePointId);
+    public ApiResponse<String> deleteSalePoint(@PathVariable Long salePointId) {
+        salePointService.deleteSalePoint(salePointId);
         return new ApiResponse<>(
                 "Sale Point Deleted Successfully"
         );

@@ -17,15 +17,15 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/admin-cost")
+@RequestMapping("/api/sale-point/cost/admin")
 public class AdminCostController {
 
     private final CostService costService;
     private final GraphServiceImpl graphService;
 
     @GetMapping("/all")
-    public ApiResponse<List<CostDto>> getAllCosts(HttpServletRequest httpServletRequest) {
-        List<CostDto> costDtoList = costService.getAllCosts(httpServletRequest);
+    public ApiResponse<List<CostDto>> getAllCosts() {
+        List<CostDto> costDtoList = costService.getAllCosts();
 
         return new ApiResponse<>(
                 "List of all paths and its costs",
@@ -34,8 +34,8 @@ public class AdminCostController {
     }
 
     @PostMapping("/create")
-    public ApiResponse<CostDto> createCost(HttpServletRequest httpServletRequest, @Valid @RequestBody CostDto costDto) {
-        CostDto costDto1 = costService.createCost(httpServletRequest, costDto);
+    public ApiResponse<CostDto> createCost(@Valid @RequestBody CostDto costDto) {
+        CostDto costDto1 = costService.createCost(costDto);
 
         return new ApiResponse<>(
                 "Path created successfully",
@@ -44,16 +44,16 @@ public class AdminCostController {
     }
 
     @DeleteMapping("/{fromId}-{toId}")
-    public ApiResponse<String> deleteCost(HttpServletRequest httpServletRequest, @PathVariable Long fromId, @PathVariable Long toId) {
-        costService.deleteCost(httpServletRequest, fromId, toId);
+    public ApiResponse<String> deleteCost(@PathVariable Long fromId, @PathVariable Long toId) {
+        costService.deleteCost(fromId, toId);
         return new ApiResponse<>(
                 "Path Deleted Successfully"
         );
     }
 
     @GetMapping("/direct-connections/{fromId}")
-    public ApiResponse<List<CostDto>> allDirectConnectionsFrom(HttpServletRequest httpServletRequest, @PathVariable Long fromId) {
-        List<CostDto> costDtoList = costService.getDirectConnectionsFrom(httpServletRequest, fromId);
+    public ApiResponse<List<CostDto>> allDirectConnectionsFrom(@PathVariable Long fromId) {
+        List<CostDto> costDtoList = costService.getDirectConnectionsFrom(fromId);
         return new ApiResponse<>(
                 "All direct connections:",
                 costDtoList
@@ -62,8 +62,8 @@ public class AdminCostController {
 
 
     @GetMapping("/shortest-path")
-    public ResponseEntity<ShortestPathResult> getShortestPath(HttpServletRequest httpServletRequest, @RequestParam Long from, @RequestParam Long to) {
-        ShortestPathResult result = graphService.findShortestPath(httpServletRequest, from, to);
+    public ResponseEntity<ShortestPathResult> getShortestPath(@RequestParam Long from, @RequestParam Long to) {
+        ShortestPathResult result = graphService.findShortestPath(from, to);
         if (result.getTotalCost() == -1) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(result);
         }

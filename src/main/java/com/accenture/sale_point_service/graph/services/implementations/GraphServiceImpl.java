@@ -87,11 +87,10 @@ public class GraphServiceImpl implements GraphService {
 
     @Cacheable(value = "shortestPaths", key = "#start + ':' + #end")
     @Override
-    public ShortestPathResult findShortestPath(HttpServletRequest httpServletRequest, Long start, Long end) {
+    public ShortestPathResult findShortestPath(Long start, Long end) {
         log.info("Starting processes for find shortest path");
 
         try {
-            validRoleType.validateAdminRole(httpServletRequest);
             log.debug("Admin role validated for shortest path");
 
             validCostFields.validateSalePointsExist(start, end);

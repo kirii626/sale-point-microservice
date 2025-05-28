@@ -7,12 +7,12 @@ import java.util.List;
 
 public interface CostService {
 
-    public List<CostDto> getAllCosts(HttpServletRequest httpServletRequest);
+    public List<CostDto> getAllCosts();
 
-    public CostDto createCost(HttpServletRequest httpServletRequest, CostDto costDto);
+    public CostDto createCost(CostDto costDto);
 
-    public void deleteCost(HttpServletRequest httpServletRequest, Long fromId, Long toId);
+    public void deleteCost(Long fromId, Long toId);
 
-    public List<CostDto> getDirectConnectionsFrom(HttpServletRequest httpServletRequest, Long fromId);
+    public List<CostDto> getDirectConnectionsFrom(Long fromId);
 
 }

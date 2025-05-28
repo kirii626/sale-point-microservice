@@ -29,13 +29,12 @@ public class SalePointServiceImpl implements SalePointService {
     private final SalePointMapper salePointMapper;
     private final ValidRoleType validRoleType;
 
-    @Cacheable(value = "salePoints", key = "'all'")
+    @Cacheable(value = "salePoints", key = "'allSalePoints'")
     @Override
-    public List<SalePointDtoOutput> allSalePoints(HttpServletRequest httpServletRequest) {
+    public List<SalePointDtoOutput> allSalePoints() {
         log.info("Fetching all sale points");
 
         try {
-            validRoleType.validateAdminRole(httpServletRequest);
             log.debug("Admin role validated for getAllSalePoints");
 
             List<SalePointEntity> salePointEntityList = salePointRepository.findAll();
@@ -74,11 +73,10 @@ public class SalePointServiceImpl implements SalePointService {
 
     @CacheEvict(value = {"salePoints", "salePointById"}, allEntries = true)
     @Override
-    public SalePointDtoOutput addSalePoint(HttpServletRequest httpServletRequest, SalePointDtoInput salePointDtoInput) {
+    public SalePointDtoOutput addSalePoint(SalePointDtoInput salePointDtoInput) {
         log.info("Initiating creation of a new sale point with name='{}'", salePointDtoInput.getName());
 
         try {
-            validRoleType.validateAdminRole(httpServletRequest);
             log.debug("Admin role validated for addSalePoint");
 
             SalePointEntity salePointEntity = salePointMapper.toEntity(salePointDtoInput);
@@ -97,11 +95,10 @@ public class SalePointServiceImpl implements SalePointService {
 
     @CacheEvict(value = {"salePoints", "salePointById"}, allEntries = true)
     @Override
-    public SalePointDtoOutput updateSalePoint(HttpServletRequest httpServletRequest, Long salePointId, SalePointDtoInput salePointDtoInput) {
+    public SalePointDtoOutput updateSalePoint(Long salePointId, SalePointDtoInput salePointDtoInput) {
         log.info("Initiating updating of sale point with ID {}", salePointId);
 
         try {
-            validRoleType.validateAdminRole(httpServletRequest);
             log.debug("Admin role validated for updateSalePoint");
 
             SalePointEntity salePointEntity = salePointRepository.findById(salePointId)
@@ -125,11 +122,10 @@ public class SalePointServiceImpl implements SalePointService {
 
     @CacheEvict(value = {"salePoints", "salePointById"}, allEntries = true)
     @Override
-    public void deleteSalePoint(HttpServletRequest httpServletRequest, Long salePointId) {
+    public void deleteSalePoint(Long salePointId) {
         log.info("Initiating deleting of sale point with ID {}", salePointId);
 
         try {
-            validRoleType.validateAdminRole(httpServletRequest);
             log.debug("Admin role validated for deleteSalePoint");
 
             SalePointEntity salePointEntity = salePointRepository.findById(salePointId)

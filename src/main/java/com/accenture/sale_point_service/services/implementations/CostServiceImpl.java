@@ -35,11 +35,10 @@ public class CostServiceImpl implements CostService {
 
     @Cacheable("costs")
     @Override
-    public List<CostDto> getAllCosts(HttpServletRequest httpServletRequest) {
+    public List<CostDto> getAllCosts() {
         log.info("Starting processes for fetching all costs");
 
         try {
-            validRoleType.validateAdminRole(httpServletRequest);
             log.debug("Admin role validated");
 
             List<CostEntity> costEntityList = costRepository.findAll();
@@ -58,11 +57,10 @@ public class CostServiceImpl implements CostService {
 
     @CacheEvict(value = {"costs", "directConnectionsFrom"}, allEntries = true)
     @Override
-    public CostDto createCost(HttpServletRequest httpServletRequest, CostDto costDto) {
+    public CostDto createCost(CostDto costDto) {
         log.info("Starting processes for creating new cost");
 
         try {
-            validRoleType.validateAdminRole(httpServletRequest);
             validCostFields.validateBusinessRules(costDto);
             log.debug("Admin role and business rules validated for createCost");
 
@@ -91,11 +89,10 @@ public class CostServiceImpl implements CostService {
 
     @CacheEvict(value = {"costs", "directConnectionsFrom"}, allEntries = true)
     @Override
-    public void deleteCost(HttpServletRequest httpServletRequest, Long fromId, Long toId) {
+    public void deleteCost(Long fromId, Long toId) {
         log.info("Starting processes for delete cost");
 
         try {
-            validRoleType.validateAdminRole(httpServletRequest);
             log.debug("Admin role validated for deleteCost");
 
             CostId costId = new CostId(fromId, toId);
@@ -117,11 +114,10 @@ public class CostServiceImpl implements CostService {
 
     @Cacheable(value = "directConnectionsFrom")
     @Override
-    public List<CostDto> getDirectConnectionsFrom(HttpServletRequest httpServletRequest, Long fromId) {
+    public List<CostDto> getDirectConnectionsFrom(Long fromId) {
         log.info("Starting processes for getting direct connections");
 
         try {
-            validRoleType.validateAdminRole(httpServletRequest);
             log.debug("Admin role validated for gerDirectConnectionsFrom");
 
             List<CostDto> costDtoList = costRepository.findAll().stream()
