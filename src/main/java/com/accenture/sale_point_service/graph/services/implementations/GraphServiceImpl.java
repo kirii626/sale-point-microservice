@@ -8,8 +8,6 @@ import com.accenture.sale_point_service.models.SalePointEntity;
 import com.accenture.sale_point_service.repositories.SalePointRepository;
 import com.accenture.sale_point_service.graph.services.GraphService;
 import com.accenture.sale_point_service.services.validations.ValidCostFields;
-import com.accenture.sale_point_service.services.validations.ValidRoleType;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -26,7 +24,6 @@ public class GraphServiceImpl implements GraphService {
 
     private final Map<Long, Map<Long, Long>> graph = new HashMap<>();
     private final SalePointRepository salePointRepository;
-    private final ValidRoleType validRoleType;
     private final ValidCostFields validCostFields;
 
     @CacheEvict(value = "shortestPaths", allEntries = true)
@@ -140,7 +137,9 @@ public class GraphServiceImpl implements GraphService {
                     .map(id -> new PathPoint(id, names.getOrDefault(id, "??")))
                     .toList();
 
-            return new ShortestPathResult(distances.get(end), pathPoints);
+            ArrayList<PathPoint> pathPointsArrayList = new ArrayList<>(pathPoints);
+
+            return new ShortestPathResult(distances.get(end), pathPointsArrayList);
         } catch (Exception ex) {
             log.error("Unexpected error while finding shortest path", ex);
             throw new InternalServerErrorException("Unexpected error while finding shortest path", ex);

@@ -3,11 +3,11 @@ package com.accenture.sale_point_service.services;
 import com.accenture.sale_point_service.dtos.SalePointDtoInput;
 import com.accenture.sale_point_service.dtos.SalePointDtoOutput;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public interface SalePointService {
 
-    public List<SalePointDtoOutput> allSalePoints();
+    public ArrayList<SalePointDtoOutput> allSalePoints();
 
     public SalePointDtoOutput addSalePoint(SalePointDtoInput salePointDtoInput);
 

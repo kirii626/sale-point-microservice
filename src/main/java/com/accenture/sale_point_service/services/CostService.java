@@ -1,18 +1,17 @@
 package com.accenture.sale_point_service.services;
 
 import com.accenture.sale_point_service.dtos.CostDto;
-import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public interface CostService {
 
-    public List<CostDto> getAllCosts();
+    public ArrayList<CostDto> getAllCosts();
 
     public CostDto createCost(CostDto costDto);
 
     public void deleteCost(Long fromId, Long toId);
 
-    public List<CostDto> getDirectConnectionsFrom(Long fromId);
+    public ArrayList<CostDto> getDirectConnectionsFrom(Long fromId);
 
 }

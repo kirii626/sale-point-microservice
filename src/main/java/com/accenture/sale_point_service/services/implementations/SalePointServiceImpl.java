@@ -2,22 +2,19 @@ package com.accenture.sale_point_service.services.implementations;
 
 import com.accenture.sale_point_service.dtos.SalePointDtoInput;
 import com.accenture.sale_point_service.dtos.SalePointDtoOutput;
-import com.accenture.sale_point_service.exceptions.ForbiddenAccessException;
 import com.accenture.sale_point_service.exceptions.InternalServerErrorException;
-import com.accenture.sale_point_service.exceptions.InvalidAuthorizationHeaderException;
 import com.accenture.sale_point_service.exceptions.SalePointNotFoundException;
 import com.accenture.sale_point_service.models.SalePointEntity;
 import com.accenture.sale_point_service.repositories.SalePointRepository;
 import com.accenture.sale_point_service.services.SalePointService;
 import com.accenture.sale_point_service.services.mappers.SalePointMapper;
-import com.accenture.sale_point_service.services.validations.ValidRoleType;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -27,23 +24,20 @@ public class SalePointServiceImpl implements SalePointService {
 
     private final SalePointRepository salePointRepository;
     private final SalePointMapper salePointMapper;
-    private final ValidRoleType validRoleType;
 
     @Cacheable(value = "salePoints", key = "'allSalePoints'")
     @Override
-    public List<SalePointDtoOutput> allSalePoints() {
+    public ArrayList<SalePointDtoOutput> allSalePoints() {
         log.info("Fetching all sale points");
 
         try {
             log.debug("Admin role validated for getAllSalePoints");
 
             List<SalePointEntity> salePointEntityList = salePointRepository.findAll();
-            List<SalePointDtoOutput> salePointDtoList = salePointMapper.toDtoList(salePointEntityList);
+            ArrayList<SalePointDtoOutput> salePointDtoOutputArrayListList = new ArrayList<>(salePointMapper.toDtoList(salePointEntityList));
 
-            log.info("Fetched {} sale points", salePointDtoList.size());
-            return salePointDtoList;
-        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
-            throw ex;
+            log.info("Fetched {} sale points", salePointDtoOutputArrayListList.size());
+            return salePointDtoOutputArrayListList;
         } catch (Exception ex) {
             log.error("Unexpected error while fetching accreditations", ex);
             throw new InternalServerErrorException("Internal error fetching sale points", ex);
@@ -85,8 +79,6 @@ public class SalePointServiceImpl implements SalePointService {
 
             log.info("Sale point with ID {} created successfully", newSalePoint.getSalePointId());
             return newSalePoint;
-        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
-            throw ex;
         } catch (Exception e) {
             log.error("Error creating sale point", e);
             throw new InternalServerErrorException("Error creating sale point", e);
@@ -112,7 +104,7 @@ public class SalePointServiceImpl implements SalePointService {
 
             log.info("Sale point with ID {} updated successfully", salePointDtoOutput.getSalePointId());
             return salePointDtoOutput;
-        } catch (SalePointNotFoundException | InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+        } catch (SalePointNotFoundException ex) {
             throw ex;
         } catch (Exception ex) {
             log.error("Error updating sale point", ex);
@@ -132,7 +124,7 @@ public class SalePointServiceImpl implements SalePointService {
                     .orElseThrow(() -> new SalePointNotFoundException(salePointId));
             salePointRepository.delete(salePointEntity);
             log.info("Sale point with ID {} deleted successfully", salePointId);
-        } catch (SalePointNotFoundException | InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+        } catch (SalePointNotFoundException ex) {
             throw ex;
         } catch (Exception e) {
             log.error("Error deleting sale point with ID {}", salePointId, e);

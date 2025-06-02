@@ -1,9 +1,7 @@
 package com.accenture.sale_point_service.services.implementations;
 
 import com.accenture.sale_point_service.dtos.CostDto;
-import com.accenture.sale_point_service.exceptions.ForbiddenAccessException;
 import com.accenture.sale_point_service.exceptions.InternalServerErrorException;
-import com.accenture.sale_point_service.exceptions.InvalidAuthorizationHeaderException;
 import com.accenture.sale_point_service.graph.services.implementations.GraphServiceImpl;
 import com.accenture.sale_point_service.models.CostEntity;
 import com.accenture.sale_point_service.models.CostId;
@@ -11,14 +9,13 @@ import com.accenture.sale_point_service.repositories.CostRepository;
 import com.accenture.sale_point_service.services.CostService;
 import com.accenture.sale_point_service.services.mappers.CostMapper;
 import com.accenture.sale_point_service.services.validations.ValidCostFields;
-import com.accenture.sale_point_service.services.validations.ValidRoleType;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -31,11 +28,10 @@ public class CostServiceImpl implements CostService {
     private final CostMapper costMapper;
     private final ValidCostFields validCostFields;
     private final GraphServiceImpl graphService;
-    private final ValidRoleType validRoleType;
 
     @Cacheable("costs")
     @Override
-    public List<CostDto> getAllCosts() {
+    public ArrayList<CostDto> getAllCosts() {
         log.info("Starting processes for fetching all costs");
 
         try {
@@ -44,11 +40,10 @@ public class CostServiceImpl implements CostService {
             List<CostEntity> costEntityList = costRepository.findAll();
 
             List<CostDto> costDtoList = costMapper.toDtoList(costEntityList);
+            ArrayList<CostDto> costDtoArrayList = new ArrayList<>(costDtoList);
 
             log.info("Fetched all sale points");
-            return costDtoList;
-        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
-            throw ex;
+            return costDtoArrayList;
         } catch (Exception ex) {
             log.error("Unexpected error while fetching all costs", ex);
             throw new InternalServerErrorException("Unexpected error while fetching all costs", ex);
@@ -79,7 +74,7 @@ public class CostServiceImpl implements CostService {
 
             log.info("Cost created successfully");
             return costDtoOutput;
-        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException | IllegalArgumentException ex) {
+        } catch (IllegalArgumentException ex) {
             throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error while creating cost", ex);
@@ -97,14 +92,15 @@ public class CostServiceImpl implements CostService {
 
             CostId costId = new CostId(fromId, toId);
 
-            if (!costRepository.existsById(costId)){
+            if (!costRepository.existsById(costId)) {
                 throw new NoSuchElementException("There isn't exist a connection between those points.");
             }
 
             costRepository.deleteById(costId);
 
             graphService.removeEdge(fromId, toId);
-        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
+        } catch (NoSuchElementException ex) {
+            log.warn("Cost not found for deletion: {}", ex.getMessage());
             throw ex;
         } catch (Exception ex) {
             log.error("Unexpected error while deleting cost", ex);
@@ -114,7 +110,7 @@ public class CostServiceImpl implements CostService {
 
     @Cacheable(value = "directConnectionsFrom")
     @Override
-    public List<CostDto> getDirectConnectionsFrom(Long fromId) {
+    public ArrayList<CostDto> getDirectConnectionsFrom(Long fromId) {
         log.info("Starting processes for getting direct connections");
 
         try {
@@ -125,15 +121,13 @@ public class CostServiceImpl implements CostService {
                     .map(costMapper::toDto)
                     .toList();
 
+            ArrayList<CostDto> costDtoArrayList = new ArrayList<>(costDtoList);
+
             log.info("Fetched directs connections for ID {}", fromId);
-            return costDtoList;
-        } catch (InvalidAuthorizationHeaderException | ForbiddenAccessException ex) {
-            throw ex;
+            return costDtoArrayList;
         } catch (Exception ex) {
             log.error("Unexpected error while fetching all directs connections", ex);
             throw new InternalServerErrorException("Unexpected error while fetching all directs connections", ex);
         }
     }
-
-
 }

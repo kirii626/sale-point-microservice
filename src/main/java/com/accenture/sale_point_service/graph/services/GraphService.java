@@ -2,7 +2,6 @@ package com.accenture.sale_point_service.graph.services;
 
 import com.accenture.sale_point_service.graph.ShortestPathResult;
 import com.accenture.sale_point_service.models.CostEntity;
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 
