@@ -7,8 +7,6 @@ import com.accenture.sale_point_service.models.CostEntity;
 import com.accenture.sale_point_service.models.SalePointEntity;
 import com.accenture.sale_point_service.repositories.SalePointRepository;
 import com.accenture.sale_point_service.services.validations.ValidCostFields;
-import com.accenture.sale_point_service.services.validations.ValidRoleType;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,15 +31,8 @@ class GraphServiceImplTest {
     private SalePointRepository salePointRepository;
 
     @Mock
-    private ValidRoleType validRoleType;
-
-    @Mock
     private ValidCostFields validCostFields;
 
-    @Mock
-    private HttpServletRequest httpServletRequest;
-
-    // -------------------- loadGraph --------------------
     @Test
     void loadGraph_shouldAddAllEdgesCorrectly() {
         List<CostEntity> costs = List.of(
@@ -51,27 +42,24 @@ class GraphServiceImplTest {
 
         graphService.loadGraph(costs);
 
-        // No exception = passed
-        ShortestPathResult result = graphService.findShortestPath(httpServletRequest, 1L, 3L);
+        ShortestPathResult result = graphService.findShortestPath(1L, 3L);
 
         assertNotNull(result);
     }
 
-    // -------------------- addEdge --------------------
     @Test
     void addEdge_shouldAddEdgeSuccessfully() {
         doNothing().when(validCostFields).validateBusinessRules(1L, 2L, 10L);
 
         graphService.addEdge(1L, 2L, 10L);
 
-        ShortestPathResult result = graphService.findShortestPath(httpServletRequest, 1L, 2L);
+        ShortestPathResult result = graphService.findShortestPath(1L, 2L);
 
         assertNotNull(result);
         assertEquals(10L, result.getTotalCost());
         assertEquals(2, result.getPath().size());
     }
 
-    // -------------------- removeEdge --------------------
     @Test
     void removeEdge_shouldRemoveConnectionBetweenPoints() {
         doNothing().when(validCostFields).validateBusinessRules(any(), any(), any());
@@ -80,16 +68,14 @@ class GraphServiceImplTest {
         graphService.addEdge(1L, 2L, 10L);
         graphService.removeEdge(1L, 2L);
 
-        ShortestPathResult result = graphService.findShortestPath(httpServletRequest, 1L, 2L);
+        ShortestPathResult result = graphService.findShortestPath( 1L, 2L);
 
         assertEquals(-1L, result.getTotalCost());
         assertTrue(result.getPath().isEmpty());
     }
 
-    // -------------------- findShortestPath --------------------
     @Test
     void findShortestPath_shouldReturnCorrectPath() {
-        doNothing().when(validRoleType).validateAdminRole(any());
         doNothing().when(validCostFields).validateSalePointsExist(any(), any());
 
         SalePointEntity salePoint1 = new SalePointEntity();
@@ -109,7 +95,7 @@ class GraphServiceImplTest {
         graphService.addEdge(1L, 2L, 5L);
         graphService.addEdge(2L, 3L, 5L);
 
-        ShortestPathResult result = graphService.findShortestPath(httpServletRequest, 1L, 3L);
+        ShortestPathResult result = graphService.findShortestPath(1L, 3L);
 
         assertEquals(10L, result.getTotalCost());
         assertEquals(List.of(1L, 2L, 3L), result.getPath().stream().map(PathPoint::getId).toList());
@@ -117,10 +103,9 @@ class GraphServiceImplTest {
 
     @Test
     void findShortestPath_shouldReturnNoPath_whenDisconnected() {
-        doNothing().when(validRoleType).validateAdminRole(any());
         doNothing().when(validCostFields).validateSalePointsExist(any(), any());
 
-        ShortestPathResult result = graphService.findShortestPath(httpServletRequest, 1L, 99L);
+        ShortestPathResult result = graphService.findShortestPath(1L, 99L);
 
         assertEquals(-1L, result.getTotalCost());
         assertTrue(result.getPath().isEmpty());

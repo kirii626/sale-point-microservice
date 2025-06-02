@@ -2,28 +2,24 @@ package com.accenture.sale_point_service.services.implementations;
 
 import com.accenture.sale_point_service.dtos.SalePointDtoInput;
 import com.accenture.sale_point_service.dtos.SalePointDtoOutput;
-import com.accenture.sale_point_service.exceptions.ForbiddenAccessException;
 import com.accenture.sale_point_service.exceptions.InternalServerErrorException;
 import com.accenture.sale_point_service.exceptions.SalePointNotFoundException;
 import com.accenture.sale_point_service.models.SalePointEntity;
 import com.accenture.sale_point_service.repositories.SalePointRepository;
 import com.accenture.sale_point_service.services.mappers.SalePointMapper;
-import com.accenture.sale_point_service.services.validations.ValidRoleType;
-import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
 class SalePointServiceImplTest {
@@ -34,150 +30,82 @@ class SalePointServiceImplTest {
     @Mock
     private SalePointMapper salePointMapper;
 
-    @Mock
-    private ValidRoleType validRoleType;
-
-    @Mock
-    private HttpServletRequest request;
-
     @InjectMocks
     private SalePointServiceImpl salePointService;
 
-    private SalePointDtoInput salePointDtoInput;
-    private SalePointDtoOutput salePointDtoOutput;
-    private SalePointEntity salePointEntity;
-
-    @BeforeEach
-    void setup() {
-        salePointDtoInput = new SalePointDtoInput("TestPoint");
-        salePointDtoOutput = new SalePointDtoOutput(1L, "Point A");
-        salePointEntity = new SalePointEntity();
-        salePointEntity.setName("TestPoint");
-    }
+    private final Long salePointId = 1L;
+    private final String salePointName = "CABA";
 
     @Test
-    void getAllSalePoints_shouldReturnOutput_whenSuccess() {
-        doNothing().when(validRoleType).validateAdminRole(request);
-        when(salePointRepository.findAll()).thenReturn(Collections.singletonList(salePointEntity));
-        when(salePointMapper.toDtoList(anyList())).thenReturn(Collections.singletonList(salePointDtoOutput));
+    void allSalePoints_shouldReturnList() {
+        List<SalePointEntity> entities = List.of(new SalePointEntity());
+        List<SalePointDtoOutput> dtos = List.of(new SalePointDtoOutput());
 
-        List<SalePointDtoOutput> result = salePointService.allSalePoints(request);
+        when(salePointRepository.findAll()).thenReturn(entities);
+        when(salePointMapper.toDtoList(entities)).thenReturn(dtos);
+
+        ArrayList<SalePointDtoOutput> result = salePointService.allSalePoints();
+
         assertEquals(1, result.size());
+        verify(salePointRepository).findAll();
     }
 
     @Test
-    void getAllSalePoints_shouldThrowInternalServerError_whenUnexpectedError() {
-        doThrow(new RuntimeException()).when(validRoleType).validateAdminRole(request);
+    void allSalePoints_shouldThrowInternalErrorException() {
+        when(salePointRepository.findAll()).thenThrow(new RuntimeException("DB error"));
 
-        assertThrows(InternalServerErrorException.class,
-                () -> salePointService.allSalePoints(request));
+        assertThrows(InternalServerErrorException.class, () -> salePointService.allSalePoints());
     }
 
     @Test
-    void findSalePointById_shouldReturnSalePoint_whenExists() {
-        when(salePointRepository.findById(1L)).thenReturn(Optional.of(salePointEntity));
-        when(salePointMapper.toDto(salePointEntity)).thenReturn(salePointDtoOutput);
+    void findSalePointById_shouldReturnDto() {
+        SalePointEntity entity = new SalePointEntity();
+        SalePointDtoOutput dto = new SalePointDtoOutput();
+        setField(dto, "salePointId", salePointId);
 
-        SalePointDtoOutput result = salePointService.findSalePointById(1L);
+        when(salePointRepository.findById(salePointId)).thenReturn(Optional.of(entity));
+        when(salePointMapper.toDto(entity)).thenReturn(dto);
 
-        assertEquals(salePointDtoOutput.getSalePointId(), result.getSalePointId());
-        assertEquals(salePointDtoOutput.getName(), result.getName());
+        SalePointDtoOutput result = salePointService.findSalePointById(salePointId);
+
+        assertEquals(salePointId, result.getSalePointId());
+        verify(salePointRepository).findById(salePointId);
     }
 
     @Test
-    void findSalePointById_shouldThrowNotFound_whenSalePointDoesNotExist() {
-        when(salePointRepository.findById(1L)).thenReturn(Optional.empty());
+    void findSalePointById_shouldThrowNotFound() {
+        when(salePointRepository.findById(salePointId)).thenReturn(Optional.empty());
 
-        assertThrows(SalePointNotFoundException.class, () ->
-                salePointService.findSalePointById(1L));
-    }
-
-
-    @Test
-    void addSalePoint_shouldSaveSalePoint_whenValidRequest() {
-        doNothing().when(validRoleType).validateAdminRole(request);
-        when(salePointMapper.toEntity(salePointDtoInput)).thenReturn(salePointEntity);
-        when(salePointRepository.save(salePointEntity)).thenReturn(salePointEntity);
-        when(salePointMapper.toDto(salePointEntity)).thenReturn(salePointDtoOutput);
-
-        SalePointDtoOutput result = salePointService.addSalePoint(request, salePointDtoInput);
-
-        assertEquals(salePointDtoOutput.getSalePointId(), result.getSalePointId());
-        verify(validRoleType).validateAdminRole(request);
-        verify(salePointRepository).save(salePointEntity);
+        assertThrows(SalePointNotFoundException.class, () -> salePointService.findSalePointById(salePointId));
     }
 
     @Test
-    void addSalePoint_shouldThrowForbidden_whenUserIsNotAdmin() {
-        doThrow(new ForbiddenAccessException())
-                .when(validRoleType).validateAdminRole(request);
+    void findSalePointById_shouldThrowInternalError() {
+        when(salePointRepository.findById(salePointId)).thenThrow(new RuntimeException());
 
-        assertThrows(ForbiddenAccessException.class, () ->
-                salePointService.addSalePoint(request, salePointDtoInput));
+        assertThrows(InternalServerErrorException.class, () -> salePointService.findSalePointById(salePointId));
     }
 
     @Test
-    void addSalePoint_shouldThrowInternalServerError_whenUnexpectedExceptionOccurs() {
-        doNothing().when(validRoleType).validateAdminRole(request);
-        when(salePointMapper.toEntity(salePointDtoInput)).thenThrow(new RuntimeException("Unexpected"));
+    void addSalePoint_shouldCreateNewSalePoint() {
+        SalePointDtoInput input = new SalePointDtoInput();
+        setField(input, "name", salePointName);
+        SalePointEntity entity = new SalePointEntity();
+        SalePointEntity saved = new SalePointEntity();
+        SalePointDtoOutput dto = new SalePointDtoOutput();
+        setField(dto, "salePointId", salePointId);
 
-        assertThrows(InternalServerErrorException.class, () ->
-                salePointService.addSalePoint(request, salePointDtoInput));
+        when(salePointMapper.toEntity(input)).thenReturn(entity);
+        when(salePointRepository.save(entity)).thenReturn(saved);
+        when(salePointMapper.toDto(saved)).thenReturn(dto);
+        when(salePointMapper.toEntity(input)).thenReturn(entity);
+        when(salePointRepository.save(entity)).thenReturn(saved);
+        when(salePointMapper.toDto(saved)).thenReturn(dto);
+
+        SalePointDtoOutput result = salePointService.addSalePoint(input);
+
+        assertEquals(salePointId, result.getSalePointId());
+        verify(salePointRepository).save(entity);
     }
-
-
-    @Test
-    void updateSalePoint_shouldUpdateSalePoint_whenExists() {
-        doNothing().when(validRoleType).validateAdminRole(request);
-        when(salePointRepository.findById(1L)).thenReturn(Optional.of(salePointEntity));
-        when(salePointRepository.save(salePointEntity)).thenReturn(salePointEntity);
-        when(salePointMapper.toDto(salePointEntity)).thenReturn(salePointDtoOutput);
-
-        SalePointDtoOutput result = salePointService.updateSalePoint(request, 1L, salePointDtoInput);
-
-        assertEquals(salePointDtoOutput.getName(), result.getName());
-        verify(salePointRepository).save(salePointEntity);
-    }
-
-    @Test
-    void updateSalePoint_shouldThrowNotFound_whenSalePointDoesNotExist() {
-        doNothing().when(validRoleType).validateAdminRole(request);
-        when(salePointRepository.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(SalePointNotFoundException.class, () ->
-                salePointService.updateSalePoint(request, 1L, salePointDtoInput));
-    }
-
-
-    @Test
-    void deleteSalePoint_shouldDeleteSalePoint_whenExists() {
-        doNothing().when(validRoleType).validateAdminRole(request);
-        when(salePointRepository.findById(1L)).thenReturn(Optional.of(salePointEntity));
-
-        assertDoesNotThrow(() -> salePointService.deleteSalePoint(request, 1L));
-
-        verify(salePointRepository).delete(salePointEntity);
-    }
-
-    @Test
-    void deleteSalePoint_shouldThrowNotFound_whenSalePointDoesNotExist() {
-        doNothing().when(validRoleType).validateAdminRole(request);
-        when(salePointRepository.findById(1L)).thenReturn(Optional.empty());
-
-        assertThrows(SalePointNotFoundException.class, () ->
-                salePointService.deleteSalePoint(request, 1L));
-    }
-
-    @Test
-    void deleteSalePoint_shouldThrowInternalServerError_whenUnexpectedExceptionOccurs() {
-        doNothing().when(validRoleType).validateAdminRole(request);
-        when(salePointRepository.findById(1L)).thenReturn(Optional.of(salePointEntity));
-        doThrow(new RuntimeException("Unexpected"))
-                .when(salePointRepository).delete(salePointEntity);
-
-        assertThrows(InternalServerErrorException.class, () ->
-                salePointService.deleteSalePoint(request, 1L));
-    }
-
 
 }

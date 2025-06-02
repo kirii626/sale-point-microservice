@@ -8,9 +8,6 @@ import com.accenture.sale_point_service.models.CostId;
 import com.accenture.sale_point_service.repositories.CostRepository;
 import com.accenture.sale_point_service.services.mappers.CostMapper;
 import com.accenture.sale_point_service.services.validations.ValidCostFields;
-import com.accenture.sale_point_service.services.validations.ValidRoleType;
-import jakarta.servlet.http.HttpServletRequest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,131 +15,135 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
 class CostServiceImplTest {
 
-    @Mock
-    private CostRepository costRepository;
-
-    @Mock
-    private CostMapper costMapper;
-
-    @Mock
-    private ValidCostFields validCostFields;
-
-    @Mock
-    private GraphServiceImpl graphService;
-
-    @Mock
-    private ValidRoleType validRoleType;
-
-    @Mock
-    private HttpServletRequest request;
+    @Mock private CostRepository costRepository;
+    @Mock private CostMapper costMapper;
+    @Mock private ValidCostFields validCostFields;
+    @Mock private GraphServiceImpl graphService;
 
     @InjectMocks
     private CostServiceImpl costService;
 
-    private CostDto costDto;
-    private CostEntity costEntity;
+    private final Long fromId = 1L;
+    private final Long toId = 2L;
+    private final CostId costId = new CostId(fromId, toId);
 
-    @BeforeEach
-    void setUp() {
-        costDto = new CostDto(1L, 2L, 10L);
-        costEntity = new CostEntity(1L, 2L, 10L);
-    }
+    private final CostDto costDto = new CostDto(fromId, toId, 100L);
 
     @Test
-    void getAllCosts_shouldReturnList_whenAdminRoleValid() {
+    void getAllCosts_shouldReturnCostList() {
+        CostEntity costEntity = new CostEntity();
+        setField(costEntity, "costId", costId);
+        costEntity.setCost(100L);
+
         when(costRepository.findAll()).thenReturn(List.of(costEntity));
         when(costMapper.toDtoList(List.of(costEntity))).thenReturn(List.of(costDto));
 
-        List<CostDto> result = costService.getAllCosts(request);
+        List<CostDto> result = costService.getAllCosts();
 
         assertEquals(1, result.size());
-        verify(validRoleType).validateAdminRole(request);
+        assertEquals(fromId, result.get(0).getFromId());
+        verify(costRepository).findAll();
     }
 
     @Test
-    void getAllCosts_shouldThrow_whenUnexpectedErrorOccurs() {
-        doThrow(new RuntimeException("error")).when(costRepository).findAll();
+    void getAllCosts_shouldThrowInternalServerError() {
+        when(costRepository.findAll()).thenThrow(new RuntimeException("DB error"));
 
-        assertThrows(InternalServerErrorException.class, () -> costService.getAllCosts(request));
+        assertThrows(InternalServerErrorException.class, () -> costService.getAllCosts());
     }
 
     @Test
-    void createCost_shouldReturnDto_whenCreationIsSuccessful() {
-        CostId costId = new CostId(1L, 2L);
+    void createCost_shouldCreateNewCost() {
+        CostEntity costEntity = new CostEntity();
+        setField(costEntity, "costId", costId);
+        costEntity.setCost(100L);
+
         when(costRepository.existsById(costId)).thenReturn(false);
         when(costMapper.toEntity(costDto)).thenReturn(costEntity);
         when(costRepository.save(costEntity)).thenReturn(costEntity);
         when(costMapper.toDto(costEntity)).thenReturn(costDto);
 
-        CostDto result = costService.createCost(request, costDto);
+        CostDto result = costService.createCost(costDto);
 
-        assertEquals(costDto, result);
-        verify(graphService).addEdge(1L, 2L, 10L);
+        assertEquals(fromId, result.getFromId());
+        verify(validCostFields).validateBusinessRules(costDto);
+        verify(graphService).addEdge(fromId, toId, 100L);
     }
 
     @Test
-    void createCost_shouldThrow_whenCostAlreadyExists() {
-        when(costRepository.existsById(new CostId(1L, 2L))).thenReturn(true);
-
-        assertThrows(IllegalArgumentException.class, () -> costService.createCost(request, costDto));
-    }
-
-    @Test
-    void createCost_shouldThrow_whenUnexpectedErrorOccurs() {
-        doThrow(new RuntimeException("unexpected")).when(costRepository).existsById(any());
-
-        assertThrows(InternalServerErrorException.class, () -> costService.createCost(request, costDto));
-    }
-
-    @Test
-    void deleteCost_shouldDelete_whenConnectionExists() {
-        CostId costId = new CostId(1L, 2L);
+    void createCost_shouldThrowIllegalArgumentException_whenExists() {
         when(costRepository.existsById(costId)).thenReturn(true);
 
-        costService.deleteCost(request, 1L, 2L);
+        assertThrows(IllegalArgumentException.class, () -> costService.createCost(costDto));
+    }
+
+    @Test
+    void createCost_shouldThrowInternalServerError_whenUnexpectedError() {
+        when(costRepository.existsById(costId)).thenThrow(new RuntimeException());
+
+        assertThrows(InternalServerErrorException.class, () -> costService.createCost(costDto));
+    }
+
+    @Test
+    void deleteCost_shouldDeleteCost() {
+        when(costRepository.existsById(costId)).thenReturn(true);
+
+        costService.deleteCost(fromId, toId);
 
         verify(costRepository).deleteById(costId);
-        verify(graphService).removeEdge(1L, 2L);
+        verify(graphService).removeEdge(fromId, toId);
     }
 
     @Test
-    void deleteCost_shouldThrow_whenConnectionDoesNotExist() {
-        when(costRepository.existsById(new CostId(1L, 2L))).thenReturn(false);
+    void deleteCost_shouldThrowNoSuchElementException_whenNotExist() {
+        when(costRepository.existsById(costId)).thenReturn(false);
 
-        assertThrows(InternalServerErrorException.class, () -> costService.deleteCost(request, 1L, 2L));
+        assertThrows(NoSuchElementException.class, () -> costService.deleteCost(fromId, toId));
     }
 
     @Test
-    void deleteCost_shouldThrow_whenUnexpectedErrorOccurs() {
-        doThrow(new RuntimeException()).when(validRoleType).validateAdminRole(request);
+    void deleteCost_shouldThrowInternalServerError_whenUnexpectedError() {
+        when(costRepository.existsById(costId)).thenThrow(new RuntimeException());
 
-        assertThrows(InternalServerErrorException.class, () -> costService.deleteCost(request, 1L, 2L));
+        assertThrows(InternalServerErrorException.class, () -> costService.deleteCost(fromId, toId));
     }
 
     @Test
-    void getDirectConnectionsFrom_shouldReturnList_whenAdminValid() {
-        when(costRepository.findAll()).thenReturn(List.of(costEntity));
+    void getDirectConnectionsFrom_shouldReturnFilteredList() {
+        CostEntity costEntity = new CostEntity();
+        setField(costEntity, "costId", costId);
+        costEntity.setCost(100L);
+
+        CostEntity otherEntity = new CostEntity();
+        setField(otherEntity, "costId", new CostId(fromId, 3L));
+        otherEntity.setCost(200L);
+        List<CostEntity> all = List.of(costEntity, otherEntity);
+
+        when(costRepository.findAll()).thenReturn(all);
         when(costMapper.toDto(costEntity)).thenReturn(costDto);
+        when(costMapper.toDto(otherEntity)).thenReturn(new CostDto(fromId, 3L, 200L));
 
-        List<CostDto> result = costService.getDirectConnectionsFrom(request, 1L);
+        List<CostDto> result = costService.getDirectConnectionsFrom(fromId);
 
-        assertEquals(1, result.size());
-        verify(validRoleType).validateAdminRole(request);
+        assertEquals(2, result.size());
+        verify(costRepository).findAll();
     }
 
     @Test
-    void getDirectConnectionsFrom_shouldThrow_whenUnexpectedErrorOccurs() {
-        doThrow(new RuntimeException()).when(validRoleType).validateAdminRole(request);
+    void getDirectConnectionsFrom_shouldThrowInternalServerError() {
+        when(costRepository.findAll()).thenThrow(new RuntimeException());
 
-        assertThrows(InternalServerErrorException.class, () ->
-                costService.getDirectConnectionsFrom(request, 1L));
+        assertThrows(InternalServerErrorException.class, () -> costService.getDirectConnectionsFrom(fromId));
     }
+
 }
