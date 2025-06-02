@@ -4,12 +4,11 @@ import com.accenture.sale_point_service.dtos.SalePointDtoInput;
 import com.accenture.sale_point_service.dtos.SalePointDtoOutput;
 import com.accenture.sale_point_service.services.SalePointService;
 import com.accenture.sale_point_service.utils.ApiResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.ArrayList;
 
 @RequiredArgsConstructor
 @RestController
@@ -19,18 +18,13 @@ public class AdminSalePointController {
     private final SalePointService salePointService;
 
     @GetMapping("/all")
-    public ApiResponse<List<SalePointDtoOutput>> getAllSalePoints() {
-        List<SalePointDtoOutput> salePointDtoOutputList = salePointService.allSalePoints();
+    public ApiResponse<ArrayList<SalePointDtoOutput>> getAllSalePoints() {
+        ArrayList<SalePointDtoOutput> salePointDtoOutputList = salePointService.allSalePoints();
 
         return new ApiResponse<>(
                 "All sale points",
                 salePointDtoOutputList
         );
-    }
-
-    @GetMapping("/by-id/{salePointId}")
-    public SalePointDtoOutput getSalePointById(@PathVariable Long salePointId) {
-        return salePointService.findSalePointById(salePointId);
     }
 
     @PostMapping("/add-sale-point")
