@@ -1,0 +1,43 @@
+@startuml
+skinparam dpi 300
+skinparam maxMessageSize 160
+
+actor Client
+participant "AdminRoleInterceptor" as Interceptor
+participant "AdminCostController" as Controller
+participant "GraphService" as Graph
+participant "ShortestPathFinder" as PathFinder
+
+Client -> Interceptor: GET /api/sale-point/cost/admin/shortest-path?from={fromId}&to={toId}
+activate Interceptor
+
+Interceptor -> Interceptor: Extract JWT from Header
+Interceptor -> Interceptor: Validate Admin Role
+
+alt Invalid Token or Not Admin
+    Interceptor --> Client: 403 Forbidden
+else Valid Admin Token
+    Interceptor -> Controller: preHandle() = true
+    deactivate Interceptor
+
+    activate Controller
+    Controller -> Graph: findShortestPath(fromId, toId)
+    activate Graph
+
+    Graph -> PathFinder: Calculate shortest path using Dijkstra
+    activate PathFinder
+    PathFinder --> Graph: path and total cost
+    deactivate PathFinder
+
+    Graph --> Controller: ShortestPathResult
+    deactivate Graph
+
+    alt No Path Found
+        Controller --> Client: 404 NOT_FOUND + ShortestPathResult(totalCost=-1)
+    else Path Found
+        Controller --> Client: 200 OK + ShortestPathResult
+    end
+    deactivate Controller
+end
+
+@enduml

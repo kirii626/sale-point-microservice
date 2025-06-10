@@ -1,0 +1,61 @@
+@startuml
+skinparam dpi 300
+skinparam maxMessageSize 160
+
+actor Client
+participant "AdminRoleInterceptor" as Interceptor
+participant "AdminCostController" as Controller
+participant "CostService" as Service
+participant "CostRepository" as Repository
+participant "GraphService" as Graph
+database "Database" as DB
+
+Client -> Interceptor: DELETE /api/sale-point/cost/admin/{fromId}-{toId}
+activate Interceptor
+
+Interceptor -> Interceptor: Extract JWT from Header
+Interceptor -> Interceptor: Validate Admin Role
+
+alt Invalid Token or Not Admin
+    Interceptor --> Client: 403 Forbidden
+else Valid Admin Token
+    Interceptor -> Controller: preHandle() = true
+    deactivate Interceptor
+
+    activate Controller
+    Controller -> Service: deleteCost(fromId, toId)
+    activate Service
+
+    Service -> Service: Create CostId(fromId, toId)
+
+    Service -> Repository: existsById(costId)
+    activate Repository
+    Repository --> Service: boolean
+
+    alt Path Not Found
+        Service --> Controller: throw NoSuchElementException
+        Controller --> Client: 404 Not Found
+    else Path Exists
+        Service -> Repository: deleteById(costId)
+        Repository -> DB: DELETE FROM costs
+        activate DB
+        DB --> Repository: void
+        deactivate DB
+        Repository --> Service: void
+        deactivate Repository
+
+        Service -> Graph: removeEdge(fromId, toId)
+        activate Graph
+        Graph --> Service: void
+        deactivate Graph
+
+        Service --> Controller: void
+        deactivate Service
+
+        Controller -> Controller: new ApiResponse("Path Deleted Successfully")
+        Controller --> Client: 200 OK + ApiResponse
+        deactivate Controller
+    end
+end
+
+@enduml

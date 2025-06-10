@@ -1,0 +1,53 @@
+@startuml
+skinparam dpi 300
+skinparam maxMessageSize 160
+
+actor Client
+participant "AdminRoleInterceptor" as Interceptor
+participant "AdminSalePointController" as Controller
+participant "SalePointService" as Service
+participant "SalePointRepository" as Repository
+database "Database" as DB
+
+Client -> Interceptor: DELETE /api/sale-point/admin/delete-sale-point/{salePointId}
+activate Interceptor
+
+Interceptor -> Interceptor: Extract JWT from Header
+Interceptor -> Interceptor: Validate Admin Role
+
+alt Invalid Token or Not Admin
+    Interceptor --> Client: 403 Forbidden
+else Valid Admin Token
+    Interceptor -> Controller: preHandle() = true
+    deactivate Interceptor
+
+    activate Controller
+    Controller -> Service: deleteSalePoint(salePointId)
+    activate Service
+
+    Service -> Repository: findById(salePointId)
+    activate Repository
+    Repository --> Service: Optional<SalePointEntity>
+
+    alt Sale Point Not Found
+        Service --> Controller: throw SalePointNotFoundException
+        Controller --> Client: 404 Not Found
+    else Sale Point Exists
+        Service -> Repository: delete(salePointEntity)
+        Repository -> DB: DELETE FROM sale_points
+        activate DB
+        DB --> Repository: void
+        deactivate DB
+        Repository --> Service: void
+        deactivate Repository
+
+        Service --> Controller: void
+        deactivate Service
+
+        Controller -> Controller: new ApiResponse("Sale Point Deleted Successfully")
+        Controller --> Client: 200 OK + ApiResponse
+        deactivate Controller
+    end
+end
+
+@enduml

@@ -1,0 +1,50 @@
+@startuml
+skinparam dpi 300
+skinparam maxMessageSize 160
+
+actor "Internal Service" as Client
+participant "InternalCallInterceptor" as Interceptor
+participant "InternalUseController" as Controller
+participant "SalePointService" as Service
+participant "SalePointRepository" as Repository
+database "Database" as DB
+
+Client -> Interceptor: GET /api/sale-point/admin/internal-use/by-id/{salePointId}
+activate Interceptor
+
+Interceptor -> Interceptor: Extract Internal API Key from Header
+Interceptor -> Interceptor: Validate Internal API Key
+
+alt Invalid or Missing API Key
+    Interceptor --> Client: 403 Forbidden
+else Valid Internal API Key
+    Interceptor -> Controller: preHandle() = true
+    deactivate Interceptor
+
+    activate Controller
+    Controller -> Service: findSalePointById(salePointId)
+    activate Service
+
+    Service -> Repository: findById(salePointId)
+    activate Repository
+    Repository -> DB: SELECT * FROM sale_points WHERE id = ?
+    activate DB
+    DB --> Repository: SalePointEntity
+    deactivate DB
+    Repository --> Service: Optional<SalePointEntity>
+    deactivate Repository
+
+    alt Sale Point Not Found
+        Service --> Controller: throw SalePointNotFoundException
+        Controller --> Client: 404 Not Found
+    else Sale Point Found
+        Service -> Service: Map entity to SalePointDtoOutput
+        Service --> Controller: SalePointDtoOutput
+        deactivate Service
+
+        Controller --> Client: 200 OK + SalePointDtoOutput
+        deactivate Controller
+    end
+end
+
+@enduml

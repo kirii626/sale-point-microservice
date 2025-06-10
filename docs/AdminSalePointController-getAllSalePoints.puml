@@ -1,0 +1,46 @@
+@startuml
+skinparam dpi 300
+skinparam maxMessageSize 160
+
+actor Client
+participant "AdminRoleInterceptor" as Interceptor
+participant "AdminSalePointController" as Controller
+participant "SalePointService" as Service
+participant "SalePointRepository" as Repository
+database "Database" as DB
+
+Client -> Interceptor: GET /api/sale-point/admin/all
+activate Interceptor
+
+Interceptor -> Interceptor: Extract JWT from Header
+Interceptor -> Interceptor: Validate Admin Role
+
+alt Invalid Token or Not Admin
+    Interceptor --> Client: 403 Forbidden
+else Valid Admin Token
+    Interceptor -> Controller: preHandle() = true
+    deactivate Interceptor
+
+    activate Controller
+    Controller -> Service: allSalePoints()
+    activate Service
+
+    Service -> Repository: findAll()
+    activate Repository
+    Repository -> DB: SELECT * FROM sale_points
+    activate DB
+    DB --> Repository: List<SalePointEntity>
+    deactivate DB
+    Repository --> Service: List<SalePointEntity>
+    deactivate Repository
+
+    Service -> Service: Map entities to SalePointDtoOutput
+    Service --> Controller: ArrayList<SalePointDtoOutput>
+    deactivate Service
+
+    Controller -> Controller: new ApiResponse("All sale points", salePointDtoOutputList)
+    Controller --> Client: 200 OK + ApiResponse
+    deactivate Controller
+end
+
+@enduml

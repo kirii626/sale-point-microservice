@@ -1,0 +1,55 @@
+@startuml
+skinparam dpi 300
+skinparam maxMessageSize 160
+
+actor Client
+participant "AdminRoleInterceptor" as Interceptor
+participant "AdminSalePointController" as Controller
+participant "SalePointService" as Service
+participant "ValidSalePointFields" as Validator
+participant "SalePointRepository" as Repository
+database "Database" as DB
+
+Client -> Interceptor: PUT /api/sale-point/admin/edit-sale-point/{salePointId}
+activate Interceptor
+
+Interceptor -> Interceptor: Extract JWT from Header
+Interceptor -> Interceptor: Validate Admin Role
+
+alt Invalid Token or Not Admin
+    Interceptor --> Client: 403 Forbidden
+else Valid Admin Token
+    Interceptor -> Controller: preHandle() = true
+    deactivate Interceptor
+
+    activate Controller
+    Controller -> Service: updateSalePoint(salePointId, salePointDtoInput)
+    activate Service
+
+    Service -> Repository: findById(salePointId)
+    activate Repository
+    Repository --> Service: Optional<SalePointEntity>
+
+    alt Sale Point Not Found
+        Service --> Controller: throw SalePointNotFoundException
+        Controller --> Client: 404 Not Found
+    else Sale Point Exists
+        Service -> Repository: save(updatedEntity)
+        Repository -> DB: UPDATE sale_points
+        activate DB
+        DB --> Repository: Updated Record
+        deactivate DB
+        Repository --> Service: SalePointEntity
+        deactivate Repository
+
+        Service -> Service: Map entity to SalePointDtoOutput
+        Service --> Controller: SalePointDtoOutput
+        deactivate Service
+
+        Controller -> Controller: new ApiResponse("Sale Point Updated Successfully", salePointDtoOutput)
+        Controller --> Client: 200 OK + ApiResponse
+        deactivate Controller
+    end
+end
+
+@enduml

@@ -1,0 +1,65 @@
+@startuml
+skinparam dpi 300
+skinparam maxMessageSize 160
+
+actor Client
+participant "AdminRoleInterceptor" as Interceptor
+participant "AdminCostController" as Controller
+participant "CostService" as Service
+participant "ValidCostFields" as Validator
+participant "CostRepository" as Repository
+participant "GraphService" as Graph
+database "Database" as DB
+
+Client -> Interceptor: POST /api/sale-point/cost/admin/create
+activate Interceptor
+
+Interceptor -> Interceptor: Extract JWT from Header
+Interceptor -> Interceptor: Validate Admin Role
+
+alt Invalid Token or Not Admin
+    Interceptor --> Client: 403 Forbidden
+else Valid Admin Token
+    Interceptor -> Controller: preHandle() = true
+    deactivate Interceptor
+
+    activate Controller
+    Controller -> Service: createCost(CostDto)
+    activate Service
+
+    Service -> Validator: validateBusinessRules(costDto)
+    activate Validator
+    Validator --> Service: void/exception
+    deactivate Validator
+
+    Service -> Repository: existsById(CostId)
+    activate Repository
+    Repository --> Service: boolean
+
+    alt Path Already Exists
+        Service --> Controller: throw IllegalArgumentException
+        Controller --> Client: 400 Bad Request
+    else Path Doesn't Exist
+        Service -> Repository: save(CostEntity)
+        Repository -> DB: INSERT INTO costs
+        activate DB
+        DB --> Repository: Cost Record
+        deactivate DB
+        Repository --> Service: CostEntity
+        deactivate Repository
+
+        Service -> Graph: addEdge(fromId, toId, cost)
+        activate Graph
+        Graph --> Service: void
+        deactivate Graph
+
+        Service --> Controller: CostDto
+        deactivate Service
+
+        Controller -> Controller: new ApiResponse("Path created successfully", costDto)
+        Controller --> Client: 200 OK + ApiResponse
+        deactivate Controller
+    end
+end
+
+@enduml
