@@ -333,7 +333,6 @@ sale_point_service
 
 ### 🎯 SonarQube – Calidad de Código
 
-> _Insertar imagen aquí_
 
 ![](docs\images\sonarqube-stats.png)
 
